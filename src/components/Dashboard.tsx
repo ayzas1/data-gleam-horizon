@@ -1,7 +1,7 @@
 import { ProfileButton } from "./ProfileButton";
 import { GradeEntry } from "./GradeEntry";
-import { DataChart } from "./DataChart";
-import { StatsCard } from "./StatsCard";
+import DataChart from "./DataChart";
+import StatsCard from "./StatsCard";
 
 const Dashboard = () => {
   return (
@@ -16,7 +16,12 @@ const Dashboard = () => {
         <div className="grid gap-6 md:grid-cols-2">
           <div className="space-y-6">
             <GradeEntry />
-            <StatsCard />
+            <StatsCard 
+              title="Overall Grade"
+              value="85%"
+              change="+5% from last month"
+              icon={<span>📈</span>}
+            />
           </div>
           <div>
             <DataChart />
