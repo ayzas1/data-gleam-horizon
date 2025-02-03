@@ -9,6 +9,44 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      assignments: {
+        Row: {
+          class_id: string | null
+          created_at: string
+          description: string | null
+          id: string
+          max_points: number
+          passing_grade: number
+          title: string
+        }
+        Insert: {
+          class_id?: string | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          max_points: number
+          passing_grade?: number
+          title: string
+        }
+        Update: {
+          class_id?: string | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          max_points?: number
+          passing_grade?: number
+          title?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "assignments_class_id_fkey"
+            columns: ["class_id"]
+            isOneToOne: false
+            referencedRelation: "classes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       auth: {
         Row: {
           email: string | null
@@ -29,6 +67,66 @@ export type Database = {
           username?: string | null
         }
         Relationships: []
+      }
+      classes: {
+        Row: {
+          created_at: string
+          description: string | null
+          id: string
+          name: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          name: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          name?: string
+        }
+        Relationships: []
+      }
+      grades: {
+        Row: {
+          assignment_id: string | null
+          created_at: string
+          id: string
+          points_earned: number
+          student_id: string | null
+        }
+        Insert: {
+          assignment_id?: string | null
+          created_at?: string
+          id?: string
+          points_earned: number
+          student_id?: string | null
+        }
+        Update: {
+          assignment_id?: string | null
+          created_at?: string
+          id?: string
+          points_earned?: number
+          student_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "grades_assignment_id_fkey"
+            columns: ["assignment_id"]
+            isOneToOne: false
+            referencedRelation: "assignments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "grades_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       "login-tracking": {
         Row: {
@@ -51,6 +149,30 @@ export type Database = {
           id?: number
           login_count?: number | null
           login_time?: string | null
+        }
+        Relationships: []
+      }
+      profiles: {
+        Row: {
+          created_at: string
+          full_name: string | null
+          id: string
+          student_id: string | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          full_name?: string | null
+          id: string
+          student_id?: string | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          full_name?: string | null
+          id?: string
+          student_id?: string | null
+          updated_at?: string
         }
         Relationships: []
       }
