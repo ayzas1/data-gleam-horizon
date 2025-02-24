@@ -1,6 +1,7 @@
 
 import { useEffect, useState } from "react";
 import { Plus } from "lucide-react";
+import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
@@ -64,12 +65,12 @@ export const SubjectManager = () => {
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
         {classes.map((class_) => (
           <Card key={class_.id} className="p-4">
-            <a href={`/subject/${class_.id}`} className="block">
+            <Link to={`/subject/${class_.id}`} className="block">
               <h3 className="font-medium">{class_.name}</h3>
               {class_.description && (
                 <p className="text-sm text-muted-foreground mt-1">{class_.description}</p>
               )}
-            </a>
+            </Link>
           </Card>
         ))}
       </div>
