@@ -1,11 +1,22 @@
 
 import { useEffect, useState } from "react";
-import { Plus } from "lucide-react";
+import { Plus, Trash2 } from "lucide-react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 
 export const SubjectManager = () => {
   const [classes, setClasses] = useState<any[]>([]);
@@ -53,6 +64,28 @@ export const SubjectManager = () => {
     loadClasses();
   };
 
+  const deleteClass = async (id: string) => {
+    const { error } = await supabase
+      .from("classes")
+      .delete()
+      .eq("id", id);
+
+    if (error) {
+      toast({
+        title: "Error",
+        description: "Failed to delete class",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    toast({
+      title: "Success",
+      description: "Class deleted successfully",
+    });
+    loadClasses();
+  };
+
   return (
     <div className="space-y-4">
       <div className="flex justify-between items-center">
@@ -65,12 +98,35 @@ export const SubjectManager = () => {
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
         {classes.map((class_) => (
           <Card key={class_.id} className="p-4">
-            <Link to={`/subject/${class_.id}`} className="block">
-              <h3 className="font-medium">{class_.name}</h3>
-              {class_.description && (
-                <p className="text-sm text-muted-foreground mt-1">{class_.description}</p>
-              )}
-            </Link>
+            <div className="flex justify-between items-start">
+              <Link to={`/subject/${class_.id}`} className="block flex-1">
+                <h3 className="font-medium">{class_.name}</h3>
+                {class_.description && (
+                  <p className="text-sm text-muted-foreground mt-1">{class_.description}</p>
+                )}
+              </Link>
+              <AlertDialog>
+                <AlertDialogTrigger asChild>
+                  <Button variant="ghost" size="icon" className="h-8 w-8">
+                    <Trash2 className="h-4 w-4 text-muted-foreground" />
+                  </Button>
+                </AlertDialogTrigger>
+                <AlertDialogContent>
+                  <AlertDialogHeader>
+                    <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+                    <AlertDialogDescription>
+                      Do you want to remove this subject? This action cannot be undone.
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter>
+                    <AlertDialogCancel>Cancel</AlertDialogCancel>
+                    <AlertDialogAction onClick={() => deleteClass(class_.id)}>
+                      Delete
+                    </AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
+            </div>
           </Card>
         ))}
       </div>
