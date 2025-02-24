@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
@@ -6,55 +7,59 @@ import { Input } from "@/components/ui/input";
 import { useAuth } from "./AuthProvider";
 import { supabase } from "@/integrations/supabase/client";
 
-export const GradeEntry = () => {
+interface GradeEntryProps {
+  classId?: string;
+  onGradeSubmit?: () => void;
+}
+
+export const GradeEntry = ({ classId, onGradeSubmit }: GradeEntryProps) => {
   const { user } = useAuth();
   const { toast } = useToast();
-  const [selectedAssignment, setSelectedAssignment] = useState("");
   const [points, setPoints] = useState("");
-  const [assignments, setAssignments] = useState<any[]>([]);
-
-  const loadAssignments = async () => {
-    const { data, error } = await supabase
-      .from("assignments")
-      .select("id, title, class_id, max_points");
-
-    if (error) {
-      toast({
-        title: "Error",
-        description: "Failed to load assignments",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    setAssignments(data || []);
-  };
 
   const submitGrade = async () => {
-    if (!user || !selectedAssignment || !points) return;
-
-    const assignment = assignments.find(a => a.id === selectedAssignment);
-    if (!assignment) return;
+    if (!user || !points) return;
 
     const pointsNum = parseFloat(points);
-    if (isNaN(pointsNum) || pointsNum < 0 || pointsNum > assignment.max_points) {
+    if (isNaN(pointsNum) || pointsNum < 0 || pointsNum > 100) {
       toast({
         title: "Error",
-        description: `Points must be between 0 and ${assignment.max_points}`,
+        description: "Points must be between 0 and 100",
         variant: "destructive",
       });
       return;
     }
 
-    const { error } = await supabase
+    // Create a new assignment and grade
+    const { data: assignment, error: assignmentError } = await supabase
+      .from("assignments")
+      .insert({
+        title: `Assignment ${Date.now()}`,
+        class_id: classId,
+        max_points: 100,
+        passing_grade: 60
+      })
+      .select()
+      .single();
+
+    if (assignmentError) {
+      toast({
+        title: "Error",
+        description: "Failed to create assignment",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    const { error: gradeError } = await supabase
       .from("grades")
       .insert({
         student_id: user.id,
-        assignment_id: selectedAssignment,
+        assignment_id: assignment.id,
         points_earned: pointsNum,
       });
 
-    if (error) {
+    if (gradeError) {
       toast({
         title: "Error",
         description: "Failed to submit grade",
@@ -68,8 +73,8 @@ export const GradeEntry = () => {
       description: "Grade submitted successfully",
     });
 
-    setSelectedAssignment("");
     setPoints("");
+    onGradeSubmit?.();
   };
 
   return (
@@ -79,27 +84,14 @@ export const GradeEntry = () => {
       </CardHeader>
       <CardContent className="space-y-4">
         <div>
-          <label className="block text-sm font-medium mb-1">Assignment</label>
-          <select
-            className="w-full p-2 border rounded"
-            value={selectedAssignment}
-            onChange={(e) => setSelectedAssignment(e.target.value)}
-          >
-            <option value="">Select Assignment</option>
-            {assignments.map((assignment) => (
-              <option key={assignment.id} value={assignment.id}>
-                {assignment.title}
-              </option>
-            ))}
-          </select>
-        </div>
-        <div>
-          <label className="block text-sm font-medium mb-1">Points Earned</label>
+          <label className="block text-sm font-medium mb-1">Points Earned (0-100)</label>
           <Input
             type="number"
             value={points}
             onChange={(e) => setPoints(e.target.value)}
-            step="0.01"
+            min="0"
+            max="100"
+            step="0.1"
           />
         </div>
         <Button onClick={submitGrade}>Submit Grade</Button>

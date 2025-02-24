@@ -1,34 +1,21 @@
-import { ProfileButton } from "./ProfileButton";
-import { GradeEntry } from "./GradeEntry";
-import DataChart from "./DataChart";
-import StatsCard from "./StatsCard";
+
+import { SidebarProvider } from "@/components/ui/sidebar";
+import { AppSidebar } from "./AppSidebar";
+import { SubjectManager } from "./SubjectManager";
 
 const Dashboard = () => {
   return (
-    <div className="min-h-screen bg-background">
-      <header className="border-b">
-        <div className="container mx-auto px-4 py-4 flex justify-between items-center">
-          <h1 className="text-2xl font-bold">Grade Tracker</h1>
-          <ProfileButton />
-        </div>
-      </header>
-      <main className="container mx-auto px-4 py-8">
-        <div className="grid gap-6 md:grid-cols-2">
-          <div className="space-y-6">
-            <GradeEntry />
-            <StatsCard 
-              title="Overall Grade"
-              value="85%"
-              change="+5% from last month"
-              icon={<span>📈</span>}
-            />
+    <SidebarProvider>
+      <div className="min-h-screen flex w-full bg-background">
+        <AppSidebar />
+        <main className="flex-1 p-6">
+          <div className="max-w-7xl mx-auto">
+            <h1 className="text-2xl font-bold mb-6">Grade Tracker</h1>
+            <SubjectManager />
           </div>
-          <div>
-            <DataChart />
-          </div>
-        </div>
-      </main>
-    </div>
+        </main>
+      </div>
+    </SidebarProvider>
   );
 };
 
