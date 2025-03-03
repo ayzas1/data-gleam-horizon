@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useAuth } from "./AuthProvider";
 import { supabase } from "@/integrations/supabase/client";
+import { AlertCircle } from "lucide-react";
 
 interface GradeEntryProps {
   classId?: string;
@@ -19,8 +20,12 @@ export const GradeEntry = ({ classId, onGradeSubmit }: GradeEntryProps) => {
   const [points, setPoints] = useState("");
   const [assignmentTitle, setAssignmentTitle] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const submitGrade = async () => {
+    // Reset error state
+    setError(null);
+    
     if (!user || !points || !assignmentTitle) {
       toast({
         title: "Error",
@@ -30,6 +35,7 @@ export const GradeEntry = ({ classId, onGradeSubmit }: GradeEntryProps) => {
       return;
     }
 
+    // Validate points
     const pointsNum = parseFloat(points);
     if (isNaN(pointsNum) || pointsNum < 0 || pointsNum > 100) {
       toast({
@@ -43,7 +49,10 @@ export const GradeEntry = ({ classId, onGradeSubmit }: GradeEntryProps) => {
     setIsSubmitting(true);
 
     try {
-      // Create a new assignment and grade
+      console.log("Creating assignment with class_id:", classId);
+      console.log("Current user ID:", user.id);
+      
+      // Create a new assignment
       const { data: assignment, error: assignmentError } = await supabase
         .from("assignments")
         .insert({
@@ -57,15 +66,20 @@ export const GradeEntry = ({ classId, onGradeSubmit }: GradeEntryProps) => {
 
       if (assignmentError) {
         console.error("Assignment creation error:", assignmentError);
+        setError(`Failed to create assignment: ${assignmentError.message}`);
         toast({
           title: "Error",
-          description: "Failed to create assignment",
+          description: `Failed to create assignment: ${assignmentError.message}`,
           variant: "destructive",
         });
         setIsSubmitting(false);
         return;
       }
 
+      console.log("Assignment created successfully:", assignment);
+      console.log("Inserting grade with student_id:", user.id, "and assignment_id:", assignment.id);
+
+      // Create a new grade
       const { error: gradeError } = await supabase
         .from("grades")
         .insert({
@@ -76,9 +90,10 @@ export const GradeEntry = ({ classId, onGradeSubmit }: GradeEntryProps) => {
 
       if (gradeError) {
         console.error("Grade submission error:", gradeError);
+        setError(`Failed to submit grade: ${gradeError.message}`);
         toast({
           title: "Error",
-          description: "Failed to submit grade",
+          description: `Failed to submit grade: ${gradeError.message}`,
           variant: "destructive",
         });
         setIsSubmitting(false);
@@ -90,14 +105,22 @@ export const GradeEntry = ({ classId, onGradeSubmit }: GradeEntryProps) => {
         description: "Grade submitted successfully",
       });
 
+      // Reset form
       setPoints("");
       setAssignmentTitle("");
-      onGradeSubmit?.();
+      setError(null);
+      
+      // Call onGradeSubmit callback if provided
+      if (onGradeSubmit) {
+        onGradeSubmit();
+      }
     } catch (error) {
       console.error("Error in grade submission:", error);
+      const errorMessage = error instanceof Error ? error.message : "An unexpected error occurred";
+      setError(errorMessage);
       toast({
         title: "Error",
-        description: "An unexpected error occurred",
+        description: errorMessage,
         variant: "destructive",
       });
     } finally {
@@ -111,6 +134,13 @@ export const GradeEntry = ({ classId, onGradeSubmit }: GradeEntryProps) => {
         <CardTitle>Submit Grade</CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
+        {error && (
+          <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded flex items-center mb-4">
+            <AlertCircle className="h-5 w-5 mr-2" />
+            <span>{error}</span>
+          </div>
+        )}
+        
         <div>
           <Label htmlFor="assignment-title" className="block text-sm font-medium mb-1">Assignment Title</Label>
           <Input
@@ -121,6 +151,7 @@ export const GradeEntry = ({ classId, onGradeSubmit }: GradeEntryProps) => {
             className="w-full"
           />
         </div>
+        
         <div>
           <Label htmlFor="points-earned" className="block text-sm font-medium mb-1">Points Earned (0-100)</Label>
           <Input
@@ -134,6 +165,7 @@ export const GradeEntry = ({ classId, onGradeSubmit }: GradeEntryProps) => {
             className="w-full"
           />
         </div>
+        
         <Button 
           onClick={submitGrade} 
           disabled={isSubmitting || !points || !assignmentTitle}
