@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
+import DataChart from "./DataChart";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -97,36 +98,41 @@ export const SubjectManager = () => {
       </div>
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
         {classes.map((class_) => (
-          <Card key={class_.id} className="p-4">
-            <div className="flex justify-between items-start">
-              <Link to={`/subject/${class_.id}`} className="block flex-1">
-                <h3 className="font-medium">{class_.name}</h3>
-                {class_.description && (
-                  <p className="text-sm text-muted-foreground mt-1">{class_.description}</p>
-                )}
-              </Link>
-              <AlertDialog>
-                <AlertDialogTrigger asChild>
-                  <Button variant="ghost" size="icon" className="h-8 w-8">
-                    <Trash2 className="h-4 w-4 text-muted-foreground" />
-                  </Button>
-                </AlertDialogTrigger>
-                <AlertDialogContent>
-                  <AlertDialogHeader>
-                    <AlertDialogTitle>Are you sure?</AlertDialogTitle>
-                    <AlertDialogDescription>
-                      Do you want to remove this subject? This action cannot be undone.
-                    </AlertDialogDescription>
-                  </AlertDialogHeader>
-                  <AlertDialogFooter>
-                    <AlertDialogCancel>Cancel</AlertDialogCancel>
-                    <AlertDialogAction onClick={() => deleteClass(class_.id)}>
-                      Delete
-                    </AlertDialogAction>
-                  </AlertDialogFooter>
-                </AlertDialogContent>
-              </AlertDialog>
+          <Card key={class_.id} className="overflow-hidden">
+            <div className="p-4">
+              <div className="flex justify-between items-start mb-2">
+                <Link to={`/subject/${class_.id}`} className="block flex-1">
+                  <h3 className="font-medium">{class_.name}</h3>
+                  {class_.description && (
+                    <p className="text-sm text-muted-foreground mt-1">{class_.description}</p>
+                  )}
+                </Link>
+                <AlertDialog>
+                  <AlertDialogTrigger asChild>
+                    <Button variant="ghost" size="icon" className="h-8 w-8">
+                      <Trash2 className="h-4 w-4 text-muted-foreground" />
+                    </Button>
+                  </AlertDialogTrigger>
+                  <AlertDialogContent>
+                    <AlertDialogHeader>
+                      <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+                      <AlertDialogDescription>
+                        Do you want to remove this subject? This action cannot be undone.
+                      </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                      <AlertDialogCancel>Cancel</AlertDialogCancel>
+                      <AlertDialogAction onClick={() => deleteClass(class_.id)}>
+                        Delete
+                      </AlertDialogAction>
+                    </AlertDialogFooter>
+                  </AlertDialogContent>
+                </AlertDialog>
+              </div>
             </div>
+            <Link to={`/subject/${class_.id}`} className="block">
+              <DataChart classId={class_.id} compact={true} />
+            </Link>
           </Card>
         ))}
       </div>
