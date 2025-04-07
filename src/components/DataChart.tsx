@@ -5,6 +5,7 @@ import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContai
 import { useAuth } from "./AuthProvider";
 import { supabase } from "@/integrations/supabase/client";
 import { format } from "date-fns";
+import { useTheme } from "./ThemeProvider";
 
 interface Grade {
   assignment_number: number;
@@ -20,6 +21,7 @@ interface DataChartProps {
 
 const DataChart = ({ classId, compact = false }: DataChartProps) => {
   const { user } = useAuth();
+  const { accentColor } = useTheme();
   const [grades, setGrades] = useState<Grade[]>([]);
 
   useEffect(() => {
@@ -70,14 +72,26 @@ const DataChart = ({ classId, compact = false }: DataChartProps) => {
       const formattedDate = data.created_at ? format(new Date(data.created_at), 'MMM dd, yyyy') : 'Unknown date';
       
       return (
-        <div className="bg-white p-3 shadow-md rounded-md border border-gray-200">
+        <div className="bg-card p-3 shadow-md rounded-md border border-gray-200 dark:border-gray-700">
           <p className="font-medium text-sm">{data.title}</p>
-          <p className="text-xs text-gray-500">{formattedDate}</p>
+          <p className="text-xs text-gray-500 dark:text-gray-400">{formattedDate}</p>
           <p className="font-semibold text-sm mt-1">{`Score: ${data.points_earned}%`}</p>
         </div>
       );
     }
     return null;
+  };
+
+  // Get color based on current accent color
+  const getAccentColor = () => {
+    const colorMap = {
+      purple: "#8B5CF6",
+      blue: "#0EA5E9",
+      green: "#10B981",
+      orange: "#F97316",
+      pink: "#EC4899"
+    };
+    return colorMap[accentColor] || "#8B5CF6";
   };
 
   // Set chart height based on compact mode
@@ -90,12 +104,14 @@ const DataChart = ({ classId, compact = false }: DataChartProps) => {
       <div className={`w-full ${compact ? "h-[120px]" : "h-[300px]"}`}>
         <ResponsiveContainer width="100%" height="100%">
           <LineChart data={grades} margin={chartMargins}>
-            {!compact && <CartesianGrid strokeDasharray="3 3" />}
+            {!compact && <CartesianGrid strokeDasharray="3 3" className="opacity-50" />}
             <XAxis 
               dataKey="assignment_number"
               label={compact ? undefined : { value: "Assignment Number", position: "bottom" }}
               tick={!compact}
               axisLine={!compact}
+              stroke="currentColor"
+              className="text-xs opacity-70"
             />
             <YAxis 
               domain={[0, 100]} 
@@ -103,14 +119,16 @@ const DataChart = ({ classId, compact = false }: DataChartProps) => {
               label={compact ? undefined : { value: "Grade", angle: -90, position: "insideLeft" }}
               tick={!compact}
               axisLine={!compact}
+              stroke="currentColor"
+              className="text-xs opacity-70"
             />
             <Tooltip content={<CustomTooltip />} />
             <Line
               type="monotone"
               dataKey="points_earned"
-              stroke="#8B5CF6"
+              stroke={getAccentColor()}
               strokeWidth={2}
-              dot={{ fill: "#8B5CF6", r: compact ? 3 : 5 }}
+              dot={{ fill: getAccentColor(), r: compact ? 3 : 5 }}
             />
           </LineChart>
         </ResponsiveContainer>
